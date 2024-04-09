@@ -14,6 +14,8 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 
 load_dotenv()
 
+website_url = 'https://www.cour-constitutionnelle.ma/'
+
 def get_vectorstore_from_url(url):
     # get the text in document form
     loader = WebBaseLoader(url)
@@ -36,7 +38,7 @@ def get_context_retriever_chain(vector_store):
     prompt = ChatPromptTemplate.from_messages([
       MessagesPlaceholder(variable_name="chat_history"),
       ("user", "{input}"),
-      ("user", "Given the above conversation, generate a search query to look up in order to get information relevant to the conversation")
+      ("user", "You are a helpful assistant that knows everything about the Court of constitution of Morocco. Given the above conversation, generate a search query to look up in order to get information relevant to the conversation")
     ])
     
     retriever_chain = create_history_aware_retriever(llm, retriever, prompt)
@@ -69,37 +71,26 @@ def get_response(user_input):
     return response['answer']
 
 # app config
-st.set_page_config(page_title="Chat with websites", page_icon="🤖")
-st.title("Chat with websites")
+st.set_page_config(page_title="DusturAi", page_icon="🤖")
+st.title("DusturAi")
 
-# sidebar
-with st.sidebar:
-    st.header("Settings")
-    website_url = st.text_input("Website URL")
-
-if website_url is None or website_url == "":
-    st.info("Please enter a website URL")
-
-else:
     # session state
-    if "chat_history" not in st.session_state:
+if "chat_history" not in st.session_state:
         st.session_state.chat_history = [
-            AIMessage(content="Hello, I am a bot. How can I help you?"),
+            AIMessage(content="ٱلسَّلَامُ عَلَيْكُمْ, I am DusturAi how can I help you?"),
         ]
-    if "vector_store" not in st.session_state:
+if "vector_store" not in st.session_state:
         st.session_state.vector_store = get_vectorstore_from_url(website_url)    
 
     # user input
-    user_query = st.chat_input("Type your message here...")
-    if user_query is not None and user_query != "":
+user_query = st.chat_input("Type your message here...")
+if user_query is not None and user_query != "":
         response = get_response(user_query)
         st.session_state.chat_history.append(HumanMessage(content=user_query))
         st.session_state.chat_history.append(AIMessage(content=response))
-        
-       
 
     # conversation
-    for message in st.session_state.chat_history:
+for message in st.session_state.chat_history:
         if isinstance(message, AIMessage):
             with st.chat_message("AI"):
                 st.write(message.content)
